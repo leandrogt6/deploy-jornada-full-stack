@@ -6,33 +6,47 @@ import { artistArray } from "../assets/database/artists";
 
 const Song = () => {
   const { id } = useParams();
-  // console.log(id);
 
-  const { image, name, duration, artist, audio } = songsArray.filter(
-    (currentSongObj) => currentSongObj._id === id
-  )[0];
-  // console.log(songObj);
+  // Encontrar a música pelo ID
+  const currentSong = songsArray.find((song) => song._id === id);
 
-  const artistObj = artistArray.filter(
-    (currentArtistObj) => currentArtistObj.name === artist
-  )[0];
-  // console.log(artistObj);
+  if (!currentSong) {
+    console.error(`Música com ID ${id} não encontrada.`);
+    return <p>Música não encontrada</p>;
+  }
 
+  const { image, name, duration, artist, audio } = currentSong;
+
+  // Encontrar o artista da música
+  const artistObj = artistArray.find(
+    (artistItem) => artistItem.name === artist
+  );
+
+  if (!artistObj) {
+    console.error(`Artista ${artist} não encontrado.`);
+    return <p>Artista não encontrado</p>;
+  }
+
+  // Pegar todas as músicas do mesmo artista
   const songsArrayFromArtist = songsArray.filter(
-    (currentSongObj) => currentSongObj.artist === artist
-  );
-  // console.log(songsArrayFromArtist);
-
-  const randomIndex = Math.floor(
-    Math.random() * (songsArrayFromArtist.length - 1)
+    (song) => song.artist === artist
   );
 
-  const randomIndex2 = Math.floor(
-    Math.random() * (songsArrayFromArtist.length - 1)
-  );
+  // Evitar erro caso tenha menos de duas músicas
+  const getRandomSongId = () => {
+    if (songsArrayFromArtist.length < 2) return id;
+    let randomSong;
+    do {
+      randomSong =
+        songsArrayFromArtist[
+          Math.floor(Math.random() * songsArrayFromArtist.length)
+        ];
+    } while (randomSong._id === id); // Evita selecionar a mesma música
+    return randomSong._id;
+  };
 
-  const randomIdFromArtist = songsArrayFromArtist[randomIndex]._id;
-  const randomId2FromArtist = songsArrayFromArtist[randomIndex2]._id;
+  const randomIdFromArtist = getRandomSongId();
+  const randomId2FromArtist = getRandomSongId();
 
   return (
     <div className="song">
@@ -54,6 +68,7 @@ const Song = () => {
 
         <Player
           duration={duration}
+          currentSongId={id}
           randomIdFromArtist={randomIdFromArtist}
           randomId2FromArtist={randomId2FromArtist}
           audio={audio}
